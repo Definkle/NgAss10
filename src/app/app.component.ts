@@ -10,11 +10,11 @@ import { Observable } from 'rxjs';
 export class AppComponent implements OnInit { 
   projectStatus = ['Stable', 'Critical', 'Finished'];
   projectForm: FormGroup;
-  forbiddenProjectNames = ['Test'];
+  forbiddenProjectNames = ['test'];
   ngOnInit() {
     this.projectForm = new FormGroup({
       'projectData': new FormGroup({
-        'name': new FormControl(null, [Validators.required], this.forbiddenNames),
+        'name': new FormControl(null, [Validators.required, this.forbiddenNames.bind(this)], this.asyncForbiddenNames),
         'email': new FormControl(null, [Validators.required, Validators.email]),
         'status': new FormControl('Stable')
       })
@@ -24,8 +24,13 @@ export class AppComponent implements OnInit {
   onSubmit() {
     console.log(this.projectForm);
   }
-
-  forbiddenNames(control: FormControl): Promise<any> | Observable<any> {
+  forbiddenNames(control: FormControl): { [s: string]: boolean } {
+    if (this.forbiddenProjectNames.indexOf(control.value) !== -1) {
+      return { 'nameIsForbidden': true };
+    }
+    return null;
+  }
+  asyncForbiddenNames(control: FormControl): Promise<any> | Observable<any> {
     const promise = new Promise<any>((resolve, reject) => {
       setTimeout(() => {
         if (control.value === 'Test') {
